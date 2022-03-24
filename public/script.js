@@ -1,28 +1,17 @@
 let gameStart = false
 let isReady = false
+let readyDraw = false
 
 function ready(){
   isReady = true
 
-  document.getElementById("you").innerHTML = 
-  `<div class="playerHeader">
-      <h4> ${yourPlayerNumber + 1}</h4>
-  </div>
-  <div class="symbolHeader">
-      <h4>${vals[yourPlayerNumber]}</h4>
-  </div>
-  <div class="readyHeader">
-      <h4>${isReady ? "✔" : "X"}</h4>
-  </div>`
+  addPlayer(yourPlayerNumber, true)
 
   socket.send(JSON.stringify({
     type: 1,
     ready: true
   }));
 }
-
-
-
 
 let height = window.innerHeight;
 let width = window.innerWidth * 8 / 10;
@@ -65,27 +54,12 @@ socket.onmessage = function (event) {
         lengthN = data.lengthN
         lengthM = data.lengthM
     
-        drawValues()
+        if(readyDraw)
+          drawValues()
 
-        let tableElem = document.getElementById("main")
-        let newElem = document.createElement("div")
-        newElem.className = "main"
-        newElem.id = "you"
-
-        let table = document.getElementById("table")
-
-        newElem.innerHTML = 
-        `<div class="playerHeader">
-            <h4> ${yourPlayerNumber + 1}</h4>
-        </div>
-        <div class="symbolHeader">
-            <h4>${vals[yourPlayerNumber]}</h4>
-        </div>
-        <div class="readyHeader">
-            <h4>${isReady ? "✔" : "X"}</h4>
-        </div>`
-
-        table.appendChild(newElem)
+        for(var x of data.players){
+          addPlayer(x.playerNum, x.ready)
+        }
     
         //alert("you are player " + yourPlayerNumber)
       } else {
@@ -103,6 +77,9 @@ socket.onmessage = function (event) {
         if(data.allReady){
           gameStart = true;
         }
+        if(!(data.playerNum === undefined) && data.playerNum != yourPlayerNumber){
+          addPlayer(data.playerNum, data.ready)
+        }
     break;
   }
 }
@@ -113,7 +90,12 @@ socket.onerror = function (error) {
 
 printBoard();
 function setup() {
+  readyDraw = true
   createCanvas(width, height);
+
+  if(lengthN != -1){
+    drawValues()
+  }
 }
 
 function draw() {
@@ -167,7 +149,6 @@ function drawValues() {
   }
 }
 
-
 function printBoard() {
   let string = ""
   for (let i = 0; i < board.length; i++) {
@@ -178,4 +159,43 @@ function printBoard() {
     string += "\n"
   }
   console.log(string)
+}
+
+function addPlayer(playerNum, isReady){
+  let existing = document.getElementById(`p${playerNum}`)
+  if(existing){
+    existing.innerHTML = `<div class="playerHeader">
+        <h4> ${playerNum + 1}</h4>
+    </div>
+    <div class="symbolHeader">
+        <h4>${vals[playerNum]}</h4>
+    </div>
+    <div class="readyHeader">
+    ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
+    </div>`
+    return
+  }
+
+  let newElem = document.createElement("div")
+  newElem.className = "main"
+  newElem.id = `p${playerNum}`
+
+  let table = document.getElementById("table")
+
+  if(playerNum == yourPlayerNumber){
+    newElem.className = "main you"
+  }
+
+  newElem.innerHTML = 
+  `<div class="playerHeader">
+      <h4> ${playerNum + 1}</h4>
+  </div>
+  <div class="symbolHeader">
+      <h4>${vals[playerNum]}</h4>
+  </div>
+  <div class="readyHeader">
+    ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
+  </div>`
+
+  table.appendChild(newElem)
 }

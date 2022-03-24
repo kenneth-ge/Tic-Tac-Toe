@@ -1,4 +1,4 @@
- let express = require('express');
+let express = require('express');
 let path = require('path')
 let router = require('./router')
 let fs = require('fs')
@@ -38,6 +38,7 @@ let uuidv4 = () => {
 var numPlayers = 0
 var currentPlayer = 0
 var numReady = 0
+let players = []
 
 let lengthN = 5 //num rows
 let lengthM = 7 //num columns
@@ -55,6 +56,7 @@ wss.on('connection', (ws) => {
     const playerNum = numPlayers
     const metadata = { id, playerNum };
 
+    players.push(metadata)
     clients.set(ws, metadata);
 
     ws.send(JSON.stringify({
@@ -62,10 +64,19 @@ wss.on('connection', (ws) => {
         yourPlayerNumber: numPlayers,
         currentPlayer: currentPlayer,
         board,
-        lengthN, lengthM
+        lengthN, lengthM,
+        players
     }))
 
     numPlayers++
+
+    clients.forEach((value, key) => {
+        const outbound = JSON.stringify({
+            type: 1,
+            playerNum: numPlayers - 1
+        });
+        key.send(outbound);
+    });
 
     ws.on('message', (messageAsString) => {
         const message = JSON.parse(messageAsString);
@@ -113,6 +124,13 @@ wss.on('connection', (ws) => {
                 break;
             case 1: //ready
                 message.type = 1
+                
+                if(metadata.ready){
+                    console.log('already ready')
+                    return;
+                }
+                
+                clients.get(ws).ready = true
 
                 numReady++
 
