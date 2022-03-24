@@ -1,6 +1,6 @@
 let gameStart = false
 let isReady = false
-let readyDraw = false
+let canvasReady = false
 
 function ready(){
   isReady = true
@@ -39,37 +39,34 @@ var board = [[0, 0], [0, 0]]
 socket.onmessage = function (event) {
   data = JSON.parse(event.data)
 
-  console.log(JSON.stringify(data))
-
   const type  = data.type;
 
   switch(type){
     case 0:
       currPlayer = data.currentPlayer
 
-      if (yourPlayerNumber == -1) {
+      if (yourPlayerNumber == -1) { //receiving your player number/setup
         yourPlayerNumber = data.yourPlayerNumber
     
         board = data.board
         lengthN = data.lengthN
         lengthM = data.lengthM
-    
-        if(readyDraw)
-          drawValues()
 
         for(var x of data.players){
           addPlayer(x.playerNum, x.ready)
         }
     
-        //alert("you are player " + yourPlayerNumber)
-      } else {
-       // alert(JSON.stringify(data))
-    
+        if(canvasReady){ //if the canvas is already ready but we're just waiting for a board size
+          drawBoard()
+        }//if the canvas is not ready, we will draw the board while we set it up
+      } else { //process a new move
         squareX = data.squareX
         squareY = data.squareY
         playerWhoJustWent = data.playerWhoJustWent
     
         board[squareY][squareX] = playerWhoJustWent
+
+        drawValue(squareY, squareX)
       }
     break;
 
@@ -88,17 +85,20 @@ socket.onerror = function (error) {
   alert(`[error] ${error.message}`);
 };
 
-printBoard();
 function setup() {
-  readyDraw = true
+  canvasReady = true
+
   createCanvas(width, height);
+  textSize(fontSize);
+
+  noLoop();
 
   if(lengthN != -1){
-    drawValues()
+    drawBoard()
   }
 }
 
-function draw() {
+function drawBoard(){
   background(220)
   stroke(2)
   for (let i = 1; i < lengthN; i++) {
@@ -112,6 +112,10 @@ function draw() {
   drawValues()
 }
 
+function draw() { //only gets called once at setup -- we're going to update the board by calling drawValues directly
+  console.log('draw')
+}
+
 let serverapproval = false;
 
 function mouseClicked() {
@@ -121,7 +125,6 @@ function mouseClicked() {
     if (currPlayer == yourPlayerNumber) {
       squareX = int((mouseX) / (width / lengthM))
       squareY = int(mouseY / (height / lengthN))
-      console.log(squareX, squareY)
       if (board[squareY][squareX] == -1) {
         socket.send(JSON.stringify({
           type: 0,
@@ -129,8 +132,6 @@ function mouseClicked() {
           squareY
         }));
       }
-
-      printBoard();
     }
   }
 
@@ -140,10 +141,14 @@ function mouseClicked() {
 let vals = ['X', 'O', 'Δ', '▢', '✂', '📪']
 let fontSize = 50
 
+function drawValue(i, j){
+  text(vals[board[i][j]], (j + 1 / 2) * (width / lengthM) - fontSize / 2, (i + 1 / 2) * (height / lengthN))
+}
+
 function drawValues() {
   for (let i = 0; i < board.length; i++) {
     for (let j = 0; j < board[i].length; j++) {
-      textSize(fontSize);
+      
       text(vals[board[i][j]], (j + 1 / 2) * (width / lengthM) - fontSize / 2, (i + 1 / 2) * (height / lengthN))
     }
   }

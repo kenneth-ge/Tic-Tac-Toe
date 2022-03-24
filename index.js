@@ -96,8 +96,6 @@ wss.on('connection', (ws) => {
                     return;
                 }
         
-                console.log(message)
-        
                 if(message.playerNum != currentPlayer){
                     console.log("Not your turn")
                     return;
@@ -110,14 +108,11 @@ wss.on('connection', (ws) => {
                 currentPlayer++
                 currentPlayer %= numPlayers
         
-                console.log(numPlayers)
-        
                 message.currentPlayer = currentPlayer
                 message.type = 0
         
                 clients.forEach((value, key) => {
                     message.yourPlayerNumber = value.playerNum
-                    console.log("Send to player " + message.yourPlayerNumber)
                     const outbound = JSON.stringify(message);
                     key.send(outbound);
                 });
