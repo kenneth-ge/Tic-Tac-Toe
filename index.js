@@ -37,6 +37,7 @@ let uuidv4 = () => {
 
 var numPlayers = 0
 var currentPlayer = 0
+var numReady = 0
 
 let lengthN = 5 //num rows
 let lengthM = 7 //num columns
@@ -57,6 +58,7 @@ wss.on('connection', (ws) => {
     clients.set(ws, metadata);
 
     ws.send(JSON.stringify({
+        type: 0,
         yourPlayerNumber: numPlayers,
         currentPlayer: currentPlayer,
         board,
@@ -68,39 +70,69 @@ wss.on('connection', (ws) => {
     ws.on('message', (messageAsString) => {
         const message = JSON.parse(messageAsString);
         const metadata = clients.get(ws);
-  
+        
         message.sender = metadata.id;
         message.playerNum = metadata.playerNum;
 
-        if(!message.squareX || !message.squareY){
-            console.log("Missing squareX and squareY")
-            return
-        }
-
-        console.log(message)
-
-        if(message.playerNum != currentPlayer){
-            console.log("Not your turn")
+        if(message.type === undefined){
             return;
         }
 
-        board[message.squareY][message.squareX] = message.playerNum
+        switch(message.type){
+            case 0: //move
+                if(message.squareX === undefined || message.squareY === undefined){
+                    console.log("Missing squareX and squareY")
+                    return;
+                }
+        
+                console.log(message)
+        
+                if(message.playerNum != currentPlayer){
+                    console.log("Not your turn")
+                    return;
+                }
+        
+                board[message.squareY][message.squareX] = message.playerNum
+        
+                message.playerWhoJustWent = currentPlayer
+        
+                currentPlayer++
+                currentPlayer %= numPlayers
+        
+                console.log(numPlayers)
+        
+                message.currentPlayer = currentPlayer
+                message.type = 0
+        
+                clients.forEach((value, key) => {
+                    message.yourPlayerNumber = value.playerNum
+                    console.log("Send to player " + message.yourPlayerNumber)
+                    const outbound = JSON.stringify(message);
+                    key.send(outbound);
+                });
+                break;
+            case 1: //ready
+                message.type = 1
 
-        message.playerWhoJustWent = currentPlayer
+                numReady++
 
-        currentPlayer++
-        currentPlayer %= numPlayers
+                if(numReady == numPlayers){
+                    message.allReady = true
+                }
+                clients.forEach((value, key) => {
+                    const outbound = JSON.stringify(message);
+                    key.send(outbound);
+                })
+                break;
+            case 2: //name
+                message.type = 2
 
-        console.log(numPlayers)
-
-        message.currentPlayer = currentPlayer
-
-        clients.forEach((value, key) => {
-            message.yourPlayerNumber = value.playerNum
-            console.log("Send to player " + message.yourPlayerNumber)
-            const outbound = JSON.stringify(message);
-            key.send(outbound);
-        });
+                clients.forEach((value, key) => {
+                    const outbound = JSON.stringify(message);
+                    key.send(outbound)   ;
+                })
+                break;
+        }
     })
 
     ws.on("close", () => {
