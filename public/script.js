@@ -4,7 +4,8 @@ let canvasReady = false
 
 function ready(){
   isReady = true
-
+  readyButton = document.getElementById("readyButton")
+  readyButton.style.visibility = "hidden";
   addPlayer(yourPlayerNumber, true)
 
   socket.send(JSON.stringify({
@@ -39,9 +40,16 @@ var board = [[0, 0], [0, 0]]
 socket.onmessage = function (event) {
   data = JSON.parse(event.data)
 
+  console.log(data)
+
   const type  = data.type;
 
   switch(type){
+    case 2:
+      if(!data.canPlay){
+        snackbar("Unfortunately, the game has already started");
+      }
+      //purposely don't break so we can spectate
     case 0:
       currPlayer = data.currentPlayer
 
@@ -55,10 +63,19 @@ socket.onmessage = function (event) {
         for(var x of data.players){
           addPlayer(x.playerNum, x.ready)
         }
+
+        updateHighlight(0, true)
     
         if(canvasReady){ //if the canvas is already ready but we're just waiting for a board size
           drawBoard()
         }//if the canvas is not ready, we will draw the board while we set it up
+
+        if(yourPlayerNumber == -2) {
+          //if we're spectators
+          //hide the ready button
+          readyButton = document.getElementById("readyButton")
+          readyButton.style.visibility = "hidden";
+        }
       } else { //process a new move
         squareX = data.squareX
         squareY = data.squareY
@@ -67,9 +84,11 @@ socket.onmessage = function (event) {
         board[squareY][squareX] = playerWhoJustWent
 
         drawValue(squareY, squareX)
+
+        updateHighlight(data.playerWhoJustWent, false)
+        updateHighlight(data.currentPlayer, true)
       }
     break;
-
     case 1:
         if(data.allReady){
           gameStart = true;
@@ -78,6 +97,10 @@ socket.onmessage = function (event) {
           addPlayer(data.playerNum, data.ready)
         }
     break;
+    case 3:
+      snackbar(`Player ${data.winner + 1} won!`)
+      clientReset()
+      break;
   }
 }
 
@@ -170,7 +193,7 @@ function addPlayer(playerNum, isReady){
   let existing = document.getElementById(`p${playerNum}`)
   if(existing){
     existing.innerHTML = `<div class="playerHeader">
-        <h4> ${playerNum + 1}</h4>
+        <h4> ${playerNum + 1}${playerNum == yourPlayerNumber ? ' (you)' : ''}</h4>
     </div>
     <div class="symbolHeader">
         <h4>${vals[playerNum]}</h4>
@@ -188,19 +211,68 @@ function addPlayer(playerNum, isReady){
   let table = document.getElementById("table")
 
   if(playerNum == yourPlayerNumber){
-    newElem.className = "main you"
+    newElem.className = "main"
+
+    newElem.innerHTML = 
+    `<div class="playerHeader">
+        <h4> ${playerNum + 1} (you)</h4>
+    </div>
+    <div class="symbolHeader">
+        <h4>${vals[playerNum]}</h4>
+    </div>
+    <div class="readyHeader">
+      ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
+    </div>`
+  }else{
+    newElem.innerHTML = 
+    `<div class="playerHeader">
+        <h4> ${playerNum + 1}</h4>
+    </div>
+    <div class="symbolHeader">
+        <h4>${vals[playerNum]}</h4>
+    </div>
+    <div class="readyHeader">
+      ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
+    </div>`
+  
   }
 
-  newElem.innerHTML = 
-  `<div class="playerHeader">
-      <h4> ${playerNum + 1}</h4>
-  </div>
-  <div class="symbolHeader">
-      <h4>${vals[playerNum]}</h4>
-  </div>
-  <div class="readyHeader">
-    ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
-  </div>`
 
   table.appendChild(newElem)
+}
+
+function snackbar(text) {
+  // Get the snackbar DIV
+  var x = document.getElementById("snackbar");
+
+  x.innerHTML = text
+  // Add the "show" class to DIV
+  x.className = "show";
+
+  // After 3 seconds, remove the show class from DIV
+  setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+}
+
+function updateHighlight(playerNum, highlight){
+  let existingPlayer = document.getElementById(`p${playerNum}`)
+  existingPlayer.className = `main ${highlight ? 'you' : ''}`
+}
+
+function clearBoard() {
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board[i].length; j++) {
+      board[i][j] = -1
+    }
+  }
+}
+
+
+function clientReset() {
+  readyButton = document.getElementById("readyButton")
+  readyButton.style.visibility = "visible";
+  isReady = false;
+  clearBoard()
+  drawBoard()
+  
+  //clear indicator and clear board
 }

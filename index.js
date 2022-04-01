@@ -4,6 +4,7 @@ let router = require('./router')
 let fs = require('fs')
 let WebSocket = require('ws');
 let wss = new WebSocket.Server({ port: 7071 });
+let util = require('./util');
 
 let clients = new Map();
 
@@ -38,37 +39,59 @@ let uuidv4 = () => {
 var numPlayers = 0
 var currentPlayer = 0
 var numReady = 0
+let gameStarted = false
 let players = []
 
 let lengthN = 5 //num rows
 let lengthM = 7 //num columns
 let board = new Array(lengthN)
 
-for(let i = 0; i < lengthN; i++){
-    board[i] = new Array(lengthM)
-    for(let j = 0; j < lengthM; j++){
-        board[i][j] = -1
+function clearBoard(){
+    for(let i = 0; i < lengthN; i++){
+        board[i] = new Array(lengthM)
+        for(let j = 0; j < lengthM; j++){
+            board[i][j] = -1
+        }
     }
 }
+clearBoard()
 
 wss.on('connection', (ws) => {
-    const id = uuidv4();
-    const playerNum = numPlayers
-    const metadata = { id, playerNum };
+    if(gameStarted){
+        const id = uuidv4();
+        const metadata = { id, playerNum: -2 };
+    
+        clients.set(ws, metadata);
 
-    players.push(metadata)
-    clients.set(ws, metadata);
+        ws.send(JSON.stringify({
+            type: 2,
+            yourPlayerNumber: -2,
+            currentPlayer: currentPlayer,
+            canPlay: false,
+            board,
+            lengthN, lengthM,
+            players
+        }))
+        return;
+    }else{
+        const id = uuidv4();
+        const playerNum = numPlayers
+        const metadata = { id, playerNum };
+    
+        players.push(metadata)
+        clients.set(ws, metadata);
+        
+        ws.send(JSON.stringify({
+            type: 0,
+            yourPlayerNumber: numPlayers,
+            currentPlayer: currentPlayer,
+            board,
+            lengthN, lengthM,
+            players
+        }))
 
-    ws.send(JSON.stringify({
-        type: 0,
-        yourPlayerNumber: numPlayers,
-        currentPlayer: currentPlayer,
-        board,
-        lengthN, lengthM,
-        players
-    }))
-
-    numPlayers++
+        numPlayers++
+    }
 
     clients.forEach((value, key) => {
         const outbound = JSON.stringify({
@@ -116,6 +139,24 @@ wss.on('connection', (ws) => {
                     const outbound = JSON.stringify(message);
                     key.send(outbound);
                 });
+
+                //check if someone won
+                let winner = util.checkWinner(board)
+                if(winner != -1){
+                    clearBoard()
+                    currentPlayer = 0
+                    gameStarted = false
+                    numReady = 0
+
+                    clients.forEach((value, key) => {
+                        let message = {
+                            type: 3,
+                            winner
+                        }
+                        const outbound = JSON.stringify(message);
+                        key.send(outbound);
+                    })
+                }
                 break;
             case 1: //ready
                 message.type = 1
@@ -131,6 +172,7 @@ wss.on('connection', (ws) => {
 
                 if(numReady == numPlayers){
                     message.allReady = true
+                    gameStarted = true
                 }
                 clients.forEach((value, key) => {
                     const outbound = JSON.stringify(message);
@@ -142,7 +184,7 @@ wss.on('connection', (ws) => {
 
                 clients.forEach((value, key) => {
                     const outbound = JSON.stringify(message);
-                    key.send(outbound)   ;
+                    key.send(outbound);
                 })
                 break;
         }
