@@ -96,7 +96,8 @@ wss.on('connection', (ws) => {
     clients.forEach((value, key) => {
         const outbound = JSON.stringify({
             type: 1,
-            playerNum: numPlayers - 1
+            playerNum: numPlayers - 1,
+            numPlayers
         });
         key.send(outbound);
     });
@@ -114,18 +115,24 @@ wss.on('connection', (ws) => {
 
         switch(message.type){
             case 0: //move
+                if(!gameStarted){
+                    console.log("Game not yet started")
+                    return;
+                }
+
                 if(message.squareX === undefined || message.squareY === undefined){
                     console.log("Missing squareX and squareY")
                     return;
                 }
         
                 if(message.playerNum != currentPlayer){
-                    console.log("Not your turn")
+                    console.log("Not your turn", currentPlayer, "'s turn")
+                    console.log("Your player number is", message.playerNum)
                     return;
                 }
-        
+                
                 board[message.squareY][message.squareX] = message.playerNum
-        
+                
                 message.playerWhoJustWent = currentPlayer
         
                 currentPlayer++
@@ -144,9 +151,13 @@ wss.on('connection', (ws) => {
                 let winner = util.checkWinner(board)
                 if(winner != -1){
                     clearBoard()
-                    currentPlayer = 0
                     gameStarted = false
                     numReady = 0
+                    currentPlayer = 0
+
+                    clients.forEach((value, key) => {
+                        value.ready = false
+                    })
 
                     clients.forEach((value, key) => {
                         let message = {
@@ -174,6 +185,7 @@ wss.on('connection', (ws) => {
                     message.allReady = true
                     gameStarted = true
                 }
+                message.numPlayers = numPlayers
                 clients.forEach((value, key) => {
                     const outbound = JSON.stringify(message);
                     key.send(outbound);
@@ -192,7 +204,7 @@ wss.on('connection', (ws) => {
 
     ws.on("close", () => {
         clients.delete(ws);
-      });
+    });
 })
 
 app.listen(8080)

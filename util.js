@@ -4,6 +4,13 @@ function dummyWinner(board){
 
 //spit out a symbol?
 
+function get(board, row, column){
+    if(row < 0 || column < 0 || row >= board.length || column >= board[row].length)
+        return -1;
+    
+    return board[row][column];
+}
+
 function checkWinner(board){
     for(let i = 0; i< board.length - 3; i++){
         for(let j =0; j<board[i].length; j++){
@@ -31,7 +38,22 @@ function checkWinner(board){
             }
         }
     }
-    //do diagonals later
+    /*for(let i =0;i<get(board,).length;i++){
+        for(let j=0;j<board[i].length;j++){
+            let row = i;
+            let col = j;
+            let position = get(board, row, col);
+            if (position == -1){
+                continue
+            }
+            if (position == board[row+1][col+1] && position == board[row+2][col+2] && position == board[row+3][col+3]){
+                return position;
+            }
+            if (position == board[row-1][col+1] && position == board[row-2][col+2] && position == board[row-3][col+3]){
+                return position;
+            }
+        }
+    }*/
     return -1
 }
 

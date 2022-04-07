@@ -20,6 +20,7 @@ let width = window.innerWidth * 8 / 10;
 let addWidth = window.innerWidth * 2 / 10
 var yourPlayerNumber = -1
 var currPlayer = -1
+var numPlayers = 1
 //var name = prompt("Enter your name")
 //no piece -> 0
 //player 1 -> 1
@@ -39,8 +40,6 @@ let lengthM = -1 //num columns
 var board = [[0, 0], [0, 0]]
 socket.onmessage = function (event) {
   data = JSON.parse(event.data)
-
-  console.log(data)
 
   const type  = data.type;
 
@@ -92,6 +91,7 @@ socket.onmessage = function (event) {
     case 1:
         if(data.allReady){
           gameStart = true;
+          numPlayers = data.numPlayers
         }
         if(!(data.playerNum === undefined) && data.playerNum != yourPlayerNumber){
           addPlayer(data.playerNum, data.ready)
@@ -136,29 +136,36 @@ function drawBoard(){
 }
 
 function draw() { //only gets called once at setup -- we're going to update the board by calling drawValues directly
-  console.log('draw')
+  //console.log('draw')
 }
 
 let serverapproval = false;
 
 function mouseClicked() {
-  if(!gameStart)
+  if(!gameStart){
+    //console.log("Game not yet started")
     return;
+  }
   if (mouseX > 0) {
     if (currPlayer == yourPlayerNumber) {
       squareX = int((mouseX) / (width / lengthM))
       squareY = int(mouseY / (height / lengthN))
       if (board[squareY][squareX] == -1) {
+        //console.log("send move")
         socket.send(JSON.stringify({
           type: 0,
           squareX,
           squareY
         }));
+      }else{
+        //console.log("square not empty")
       }
+    }else{
+      //console.log("not our turn")
     }
+  }else{
+    //console.log("mouse not in correct position")
   }
-
-
 }
 
 let vals = ['X', 'O', 'Δ', '▢', '✂', '📪']
@@ -234,7 +241,6 @@ function addPlayer(playerNum, isReady){
     <div class="readyHeader">
       ${isReady ? '<h4 style="color:green">✔</h4>' : '<h4 style="color:red">X</h4>'}
     </div>`
-  
   }
 
 
@@ -266,13 +272,18 @@ function clearBoard() {
   }
 }
 
-
 function clientReset() {
   readyButton = document.getElementById("readyButton")
   readyButton.style.visibility = "visible";
   isReady = false;
+  currPlayer = 0
   clearBoard()
   drawBoard()
   
   //clear indicator and clear board
+  for(var x = 0; x < numPlayers; x++){
+    addPlayer(x, false)
+    updateHighlight(x, false)
+  }
+  updateHighlight(0, true)
 }
