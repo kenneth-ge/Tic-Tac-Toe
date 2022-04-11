@@ -15,9 +15,9 @@ function ready(){
 }
 
 let height = window.innerHeight;
-let width = window.innerWidth * 8 / 10;
+let width = window.innerWidth * 8.5 / 10;
 
-let addWidth = window.innerWidth * 2 / 10
+let addWidth = window.innerWidth * 1.5 / 10
 var yourPlayerNumber = -1
 var currPlayer = -1
 var numPlayers = 1
@@ -92,6 +92,13 @@ socket.onmessage = function (event) {
     break;
     case 1:
         if(data.allReady){
+          board = data.board
+          lengthN = data.lengthN
+          lengthM = data.lengthM
+          drawBoard()
+
+          snackbar(`Get ${data.inARow} in a row to win!`)
+
           gameStart = true;
           numPlayers = data.numPlayers
         }
@@ -114,7 +121,6 @@ function setup() {
   canvasReady = true
 
   createCanvas(width, height);
-  textSize(fontSize);
 
   noLoop();
 
@@ -134,6 +140,9 @@ function drawBoard(){
     //draw vertical lines
     line(i * width / (lengthM), 0, i * width / (lengthM), height)
   }
+  textAlign(CENTER, CENTER);
+  textSize(Math.floor(Math.min(height / lengthN, width / lengthM) * 0.8))
+  console.log('size', Math.floor(Math.min(height / lengthN, width / lengthM) * 0.8))
   drawValues()
 }
 
@@ -170,18 +179,17 @@ function mouseClicked() {
   }
 }
 
-let vals = ['X', 'O', 'Δ', '▢', '✂', '📪']
-let fontSize = 50
+let vals = ['X', 'O', 'Δ', '▢', '⟅', '☆', '+', 'U', '✂', '📪']
 
 function drawValue(i, j){
-  text(vals[board[i][j]], (j + 1 / 2) * (width / lengthM) - fontSize / 2, (i + 1 / 2) * (height / lengthN))
+  text(vals[board[i][j]], (j) * (width / lengthM), (i) * (height / lengthN), (width / lengthM), (height / lengthN))
 }
 
 function drawValues() {
   for (let i = 0; i < board.length; i++) {
     for (let j = 0; j < board[i].length; j++) {
       
-      text(vals[board[i][j]], (j + 1 / 2) * (width / lengthM) - fontSize / 2, (i + 1 / 2) * (height / lengthN))
+      text(vals[board[i][j]], (j) * (width / lengthM), (i) * (height / lengthN), (width / lengthM), (height / lengthN))
     }
   }
 }

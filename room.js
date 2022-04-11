@@ -9,7 +9,8 @@ function Room(){
         gameStarted = false,
         players = [],
         lengthN = 5, //num rows
-        lengthM = 7 //num columns
+        lengthM = 7, //num columns
+        inARow = 4
 
     board = new Array(lengthN)
 
@@ -71,6 +72,23 @@ function Room(){
         });
     }
 
+    function selectBoardSize(){
+        const minLen = 4
+        const maxLen = 5
+
+        lengthN = Math.ceil(5 * Math.pow(1.3, numPlayers / 2))
+        lengthM = Math.ceil(7 * Math.pow(1.3, numPlayers / 2))
+
+        if(lengthN > 8){
+            inARow = maxLen
+        }else{
+            inARow = minLen
+        }
+
+        board = new Array(lengthN)
+        clearBoard()
+    }
+
     function addClient(ws){
         createClient(ws)
     
@@ -120,7 +138,7 @@ function Room(){
                     });
     
                     //check if someone won
-                    let winner = util.checkWinner(board, 4)
+                    let winner = util.checkWinner(board, inARow)
                     if(winner != -1){
                         clearBoard()
                         gameStarted = false
@@ -156,6 +174,12 @@ function Room(){
                     if(numReady == numPlayers){
                         message.allReady = true
                         gameStarted = true
+
+                        selectBoardSize()
+                        message.board = board
+                        message.lengthN = lengthN
+                        message.lengthM = lengthM
+                        message.inARow = inARow
                     }
                     message.numPlayers = numPlayers
                     clients.forEach((value, key) => {
