@@ -1,63 +1,40 @@
-function dummyWinner(board){
-    return board[0][0]
-}
+let randomWords = require('random-words');
 
-//spit out a symbol?
-
-function get(board, row, column){
+let get = (board, row, column) => {
     if(row < 0 || column < 0 || row >= board.length || column >= board[row].length)
         return -1;
     
     return board[row][column];
 }
 
-function checkWinner(board){
-    for(let i = 0; i< board.length - 3; i++){
-        for(let j =0; j<board[i].length; j++){
-            let x = i;
-            let y = j;
-            let position = board[x][y];
-            if(position == -1)
+let checkWinner = (board, inarow) => {
+    for(let r = 0; r < board.length; r++){
+        for(let c = 0; c < board[r].length; c++){
+            let symbol = board[r][c];
+            if(symbol == -1)
                 continue
             
-            if(position == board[x+1][y] && position == board[x+2][y] && position == board[x+3][y]){
-                return position;
+            let vertical = true, horizontal = true, diagonalClockwise = true, diagonalCounter = true
+            for(let k = 0; k < inarow; k++){
+                //vertical
+                vertical &= get(board, r + k, c) == symbol
+                horizontal &= get(board, r, c + k) == symbol
+                diagonalClockwise &= get(board, r + k, c + k) == symbol
+                diagonalCounter &= get(board, r + k, c - k) == symbol
             }
+
+            if(vertical || horizontal || diagonalClockwise || diagonalCounter)
+                return symbol;
         }
     }
-    for(let j = 0; j< board.length; j++){
-        for(let i =0; i<board[j].length - 3; i++){
-            let x = i;
-            let y = j;
-            let position = board[x][y];
-            if(position == -1)
-                continue
-            
-            if(position == board[x][y+1] && position == board[x][y+2] && position == board[x][y+3]){
-                return position;
-            }
-        }
-    }
-    /*for(let i =0;i<get(board,).length;i++){
-        for(let j=0;j<board[i].length;j++){
-            let row = i;
-            let col = j;
-            let position = get(board, row, col);
-            if (position == -1){
-                continue
-            }
-            if (position == board[row+1][col+1] && position == board[row+2][col+2] && position == board[row+3][col+3]){
-                return position;
-            }
-            if (position == board[row-1][col+1] && position == board[row-2][col+2] && position == board[row-3][col+3]){
-                return position;
-            }
-        }
-    }*/
     return -1
 }
 
+let generateRoom = () => {
+    return randomWords()
+}
+
 module.exports = {
-    dummyWinner,
-    checkWinner
+    checkWinner,
+    generateRoom
 }

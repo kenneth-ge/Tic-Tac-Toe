@@ -1,4 +1,5 @@
 let express = require('express');
+let util = require('./util')
 const router = express.Router();
 
 function setCookie(token, res) {
@@ -11,6 +12,10 @@ function setCookie(token, res) {
 }
 
 router.get('/', (req, res) => {
+    res.redirect(`/${util.generateRoom()}`)
+})
+
+router.get('/:id', (req, res) => {
     res.render('index')
 })
 

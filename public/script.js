@@ -28,7 +28,7 @@ var numPlayers = 1
 //etc. 
 
 
-let socket = new WebSocket("ws://localhost:7071/ws");
+let socket = new WebSocket(`ws://localhost:7071${window.location.pathname}`);
 
 socket.onopen = function (e) {
   // alert("[open] Connection established");
@@ -38,6 +38,7 @@ socket.onopen = function (e) {
 let lengthN = -1 //num rows
 let lengthM = -1 //num columns
 var board = [[0, 0], [0, 0]]
+let spectator = false
 socket.onmessage = function (event) {
   data = JSON.parse(event.data)
 
@@ -47,6 +48,7 @@ socket.onmessage = function (event) {
     case 2:
       if(!data.canPlay){
         snackbar("Unfortunately, the game has already started");
+        spectator = true
       }
       //purposely don't break so we can spectate
     case 0:
@@ -99,7 +101,7 @@ socket.onmessage = function (event) {
     break;
     case 3:
       snackbar(`Player ${data.winner + 1} won!`)
-      clientReset()
+      setTimeout(clientReset, 3000)
       break;
   }
 }
@@ -273,6 +275,10 @@ function clearBoard() {
 }
 
 function clientReset() {
+  if(spectator){
+    location.reload()
+  }
+
   readyButton = document.getElementById("readyButton")
   readyButton.style.visibility = "visible";
   isReady = false;
