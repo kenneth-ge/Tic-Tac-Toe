@@ -28,7 +28,7 @@ var numPlayers = 1
 //etc. 
 
 
-let socket = new WebSocket(`ws://localhost:7071${window.location.pathname}`);
+let socket = new WebSocket(`ws://${window.location.hostname}:7071${window.location.pathname}`);
 
 socket.onopen = function (e) {
   // alert("[open] Connection established");
@@ -141,8 +141,8 @@ function drawBoard(){
     line(i * width / (lengthM), 0, i * width / (lengthM), height)
   }
   textAlign(CENTER, CENTER);
-  textSize(Math.floor(Math.min(height / lengthN, width / lengthM) * 0.8))
-  console.log('size', Math.floor(Math.min(height / lengthN, width / lengthM) * 0.8))
+  textSize(Math.floor(Math.min(height / lengthN, width / lengthM) * 0.6))
+  console.log('size', Math.floor(Math.min(height / lengthN, width / lengthM) * 0.6))
   drawValues()
 }
 
@@ -151,6 +151,10 @@ function draw() { //only gets called once at setup -- we're going to update the 
 }
 
 let serverapproval = false;
+
+function touchStarted(){
+  mouseClicked()
+}
 
 function mouseClicked() {
   if(!gameStart){

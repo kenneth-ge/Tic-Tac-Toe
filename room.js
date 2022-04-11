@@ -85,6 +85,10 @@ function Room(){
             inARow = minLen
         }
 
+        if(numPlayers == 2){
+            inARow = 5
+        }
+
         board = new Array(lengthN)
         clearBoard()
     }
@@ -106,18 +110,18 @@ function Room(){
             switch(message.type){
                 case 0: //move
                     if(!gameStarted){
-                        console.log("Game not yet started")
+                        //console.log("Game not yet started")
                         return;
                     }
     
                     if(message.squareX === undefined || message.squareY === undefined){
-                        console.log("Missing squareX and squareY")
+                        //console.log("Missing squareX and squareY")
                         return;
                     }
             
                     if(message.playerNum != currentPlayer){
-                        console.log("Not your turn", currentPlayer, "'s turn")
-                        console.log("Your player number is", message.playerNum)
+                        //console.log("Not your turn", currentPlayer, "'s turn")
+                        //console.log("Your player number is", message.playerNum)
                         return;
                     }
                     
@@ -163,7 +167,6 @@ function Room(){
                     message.type = 1
                     
                     if(metadata.ready){
-                        console.log('already ready')
                         return;
                     }
                     
