@@ -87,6 +87,10 @@ function Room(){
 
         if(numPlayers == 2){
             inARow = 5
+        }else if(numPlayers <= 4){
+            inARow = 4
+        }else{
+            inARow = 3
         }
 
         board = new Array(lengthN)

@@ -183,7 +183,7 @@ function mouseClicked() {
   }
 }
 
-let vals = ['X', 'O', 'Δ', '▢', '⟅', '☆', '+', 'U', '✂', '📪']
+let vals = ['📪', 'X', 'O', 'Δ', '▢', '⟅', '☆', '+', 'U', '✂']
 
 function drawValue(i, j){
   text(vals[board[i][j]], (j) * (width / lengthM), (i) * (height / lengthN), (width / lengthM), (height / lengthN))
