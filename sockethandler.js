@@ -9,6 +9,11 @@ let onconnect = (ws, req) => {
         rooms.set(currentRoom, room.Room())
     }
 
+    if(rooms.get(currentRoom).inactive()){
+        console.log('inactive')
+        rooms.set(currentRoom, room.Room())
+    }
+
     rooms.get(currentRoom).addClient(ws)
 }
 

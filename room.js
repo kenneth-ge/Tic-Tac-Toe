@@ -10,7 +10,8 @@ function Room(){
         players = [],
         lengthN = 5, //num rows
         lengthM = 7, //num columns
-        inARow = 4
+        inARow = 4,
+        lastActive = Date.now()
 
     board = new Array(lengthN)
 
@@ -26,7 +27,7 @@ function Room(){
     clearBoard()
 
     function createClient(ws){
-        if(gameStarted){
+        if(gameStarted || numPlayers >= 10){ //create spectator
             const id = uuid.v4();
             const metadata = { id, playerNum: -2 };
         
@@ -107,9 +108,11 @@ function Room(){
             message.sender = metadata.id;
             message.playerNum = metadata.playerNum;
     
-            if(message.type === undefined){
+            if(message.type === undefined || message.playerNum == -2){
                 return;
             }
+
+            lastActive = Date.now()
     
             switch(message.type){
                 case 0: //move
@@ -206,12 +209,60 @@ function Room(){
         })
 
         ws.on("close", () => {
+            const metadata = clients.get(ws);
+            let playerNum = metadata.playerNum;
+
+            if(playerNum >= 0){ //if not spectator, then we have to stop the game and restart
+                clearBoard()
+                gameStarted = false
+                numReady = 0
+                currentPlayer = 0
+                numPlayers--;
+
+                clients.forEach((value, key) => {
+                    value.ready = false
+                    if(value.playerNum >= playerNum){
+                        value.playerNum--;
+                    }
+                })
+
+                players.splice(playerNum, 1)
+
+                console.log(players)
+
+                clients.forEach((value, key) => {
+                    let message = {
+                        type: 4,
+                        playerNum,
+                        players
+                    }
+                    const outbound = JSON.stringify(message);
+                    key.send(outbound);
+                })
+            }
+
             clients.delete(ws);
         });
     }
 
+    function inactive(){
+        let timeSinceActive  = Date.now() - lastActive
+
+        if(timeSinceActive > 2 * 60 * 60 * 1000) { //if 2 hours of inactivity
+            clients.forEach((value, key) => {
+                console.log('closing socket')
+                clients.delete(key);
+                key.close()
+            })
+            return true
+        }
+
+        return false
+    }
+
     return {
-        addClient
+        addClient,
+        inactive
     }
 }
 

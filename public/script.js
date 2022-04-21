@@ -47,7 +47,7 @@ socket.onmessage = function (event) {
   switch(type){
     case 2:
       if(!data.canPlay){
-        snackbar("Unfortunately, the game has already started");
+        snackbar("Unfortunately, the game is full");
         spectator = true
       }
       //purposely don't break so we can spectate
@@ -110,6 +110,24 @@ socket.onmessage = function (event) {
       snackbar(`Player ${data.winner + 1} won!`)
       setTimeout(clientReset, 3000)
       break;
+    case 4:
+      snackbar(`Player ${data.playerNum + 1} disconnected, game restarting...`)
+      setTimeout(clientReset, 3000)
+
+      let table = document.getElementById("table").innerHTML = ""
+
+      for(var x of data.players){
+        addPlayer(x.playerNum, x.ready)
+      }
+
+      numPlayers--
+
+      if(yourPlayerNumber >= data.playerNum){
+        yourPlayerNumber--
+      }
+
+      updateHighlight(0, true)
+      break;
   }
 }
 
@@ -127,6 +145,15 @@ function setup() {
   if(lengthN != -1){
     drawBoard()
   }
+
+  var gameCode = document.getElementById("gameCode");
+
+  var gameCodeText = window.location.pathname
+  gameCodeText = gameCodeText.substring(1, gameCodeText.length);
+
+  gameCode.innerHTML = "Game Code: " + gameCodeText;
+
+
 }
 
 function drawBoard(){
@@ -183,7 +210,7 @@ function mouseClicked() {
   }
 }
 
-let vals = ['📪', 'X', 'O', 'Δ', '▢', '⟅', '☆', '+', 'U', '✂']
+let vals = ['X', 'O', 'Δ', '▢', '⟅', '📪', 'U', '✂', '+', '☆']
 
 function drawValue(i, j){
   text(vals[board[i][j]], (j) * (width / lengthM), (i) * (height / lengthN), (width / lengthM), (height / lengthN))
@@ -257,7 +284,6 @@ function addPlayer(playerNum, isReady){
     </div>`
   }
 
-
   table.appendChild(newElem)
 }
 
@@ -304,4 +330,11 @@ function clientReset() {
     updateHighlight(x, false)
   }
   updateHighlight(0, true)
+}
+
+function copyFunction() {
+
+  var copyText = window.location.href
+
+  navigator.clipboard.writeText(copyText);
 }
