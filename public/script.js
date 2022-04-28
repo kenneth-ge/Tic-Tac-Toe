@@ -15,9 +15,9 @@ function ready(){
 }
 
 let height = window.innerHeight;
-let width = window.innerWidth * 8.5 / 10;
+let width = window.innerWidth * 8 / 10;
 
-let addWidth = window.innerWidth * 1.5 / 10
+let addWidth = window.innerWidth * 2 / 10
 var yourPlayerNumber = -1
 var currPlayer = -1
 var numPlayers = 1
@@ -128,6 +128,18 @@ socket.onmessage = function (event) {
 
       updateHighlight(0, true)
       break;
+    case 5:
+      yourPlayerNumber = data.playerNum
+
+      for(var x of data.players){
+        addPlayer(x.playerNum, x.ready)
+      }
+
+      updateHighlight(0, true)
+
+      snackbar(`Shuffling players...`)
+      setTimeout(clientReset, 3000)
+      break;
   }
 }
 
@@ -171,6 +183,11 @@ function drawBoard(){
   textSize(Math.floor(Math.min(height / lengthN, width / lengthM) * 0.6))
   console.log('size', Math.floor(Math.min(height / lengthN, width / lengthM) * 0.6))
   drawValues()
+
+  var copyText = window.location.href
+
+  document.getElementById('copyBtn').setAttribute('data-clipboard-text', copyText)
+  var clipboard = new ClipboardJS('#copyBtn')
 }
 
 function draw() { //only gets called once at setup -- we're going to update the board by calling drawValues directly
@@ -330,11 +347,4 @@ function clientReset() {
     updateHighlight(x, false)
   }
   updateHighlight(0, true)
-}
-
-function copyFunction() {
-
-  var copyText = window.location.href
-
-  navigator.clipboard.writeText(copyText);
 }

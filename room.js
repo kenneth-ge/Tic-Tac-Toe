@@ -26,6 +26,39 @@ function Room(){
 
     clearBoard()
 
+    function shufflePlayers(){
+        var newPlayerNums = new Array(players.length)
+        newPlayerNums.fill(-1)
+
+        for(var i = 0; i < players.length; i++){
+            while(true){
+                var spot = Math.floor(Math.random() * players.length)
+
+                if(newPlayerNums[spot] == -1){
+                    newPlayerNums[spot] = i
+                    players[spot].playerNum = i
+                    break
+                }
+            }
+        }
+
+        players.sort((a, b) => (a.playerNum > b.playerNum) ? 1 : -1)
+
+        clients.forEach((value, key) => {
+            value.playerNum = newPlayerNums[value.playerNum]
+        })
+
+        clients.forEach((value, key) => {
+            let message = {
+                type: 5,
+                playerNum: value.playerNum,
+                players
+            }
+            const outbound = JSON.stringify(message);
+            key.send(outbound);
+        })
+    }
+
     function createClient(ws){
         if(gameStarted || numPlayers >= 10){ //create spectator
             const id = uuid.v4();
@@ -168,6 +201,8 @@ function Room(){
                             const outbound = JSON.stringify(message);
                             key.send(outbound);
                         })
+
+                        shufflePlayers()
                     }
                     break;
                 case 1: //ready
@@ -227,8 +262,6 @@ function Room(){
                 })
 
                 players.splice(playerNum, 1)
-
-                console.log(players)
 
                 clients.forEach((value, key) => {
                     let message = {

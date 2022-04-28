@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+    <script src="https://unpkg.com/clipboard@2/dist/clipboard.min.js"></script>
     <script src="script.js"></script>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -13,7 +14,7 @@
     <div class="sidebar">
         <h1>Mega Tic Tac Toe</h1>
         <h2 id="gameCode">Room Code</h2>
-        <button id="copyButton" onclick="copyFunction()" class="sideButtons">Copy</button>
+        <button class="sideButtons" id="copyBtn" data-clipboard-text="1" onclick="snackbar('Copied game link')">Copy</button>
         <button id="readyButton" class="sideButtons" onclick="ready()">Ready</button>
         <div id="table">
             <div id="main" class="main">
