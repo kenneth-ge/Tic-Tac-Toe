@@ -3,7 +3,7 @@ let room = require('./room')
 let rooms = new Map()
 
 let onconnect = (ws, req) => {
-    let currentRoom = req.url
+    let currentRoom = req.url.slice(0, 10)
 
     if(!rooms.has(currentRoom)){
         rooms.set(currentRoom, room.Room())
