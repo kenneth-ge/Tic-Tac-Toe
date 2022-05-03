@@ -8,12 +8,16 @@ let get = (board, row, column) => {
 }
 
 let checkWinner = (board, inarow) => {
+    let numempty = 0
+
     for(let r = 0; r < board.length; r++){
         for(let c = 0; c < board[r].length; c++){
             let symbol = board[r][c];
             if(symbol == -1)
                 continue
             
+            numempty++
+
             let vertical = true, horizontal = true, diagonalClockwise = true, diagonalCounter = true
             for(let k = 0; k < inarow; k++){
                 //vertical
@@ -27,6 +31,10 @@ let checkWinner = (board, inarow) => {
                 return symbol;
         }
     }
+
+    if(numempty == 0)
+        return -2
+    
     return -1
 }
 

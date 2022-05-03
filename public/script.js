@@ -107,8 +107,13 @@ socket.onmessage = function (event) {
         }
     break;
     case 3:
-      snackbar(`Player ${data.winner + 1} won! Shuffling players...`)
-      setTimeout(clientReset, 3000)
+      if(data.winner == -2){
+        snackbar(`It's a tie! Shuffling players...`)
+        setTimeout(clientReset, 3000)
+      }else{
+        snackbar(`Player ${data.winner + 1} won! Shuffling players...`)
+        setTimeout(clientReset, 3000)
+      }
       break;
     case 4:
       snackbar(`Player ${data.playerNum + 1} disconnected, restarting game...`)
