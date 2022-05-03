@@ -107,11 +107,11 @@ socket.onmessage = function (event) {
         }
     break;
     case 3:
-      snackbar(`Player ${data.winner + 1} won!`)
+      snackbar(`Player ${data.winner + 1} won! Shuffling players...`)
       setTimeout(clientReset, 3000)
       break;
     case 4:
-      snackbar(`Player ${data.playerNum + 1} disconnected, game restarting...`)
+      snackbar(`Player ${data.playerNum + 1} disconnected, restarting game...`)
       setTimeout(clientReset, 3000)
 
       let table = document.getElementById("table").innerHTML = ""
@@ -137,8 +137,6 @@ socket.onmessage = function (event) {
 
       updateHighlight(0, true)
 
-      snackbar(`Shuffling players...`)
-      setTimeout(clientReset, 3000)
       break;
   }
 }
