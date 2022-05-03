@@ -13,10 +13,10 @@ let checkWinner = (board, inarow) => {
     for(let r = 0; r < board.length; r++){
         for(let c = 0; c < board[r].length; c++){
             let symbol = board[r][c];
-            if(symbol == -1)
+            if(symbol == -1){
+                numempty++
                 continue
-            
-            numempty++
+            }
 
             let vertical = true, horizontal = true, diagonalClockwise = true, diagonalCounter = true
             for(let k = 0; k < inarow; k++){
